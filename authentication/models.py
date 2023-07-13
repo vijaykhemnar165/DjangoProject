@@ -1,5 +1,6 @@
 from enum import unique
 from re import T
+import uuid
 from django.db import models
 from django.utils import timezone
 from datetime import date
@@ -9,7 +10,7 @@ from django.db.models.signals import post_save
 
 # Create your models here.
 class UserManager(BaseUserManager):
-    def create_user(self, email, firstname, lastname, password=None):
+    def create_user(self, email, firstname, lastname, password=None,**extra_fields):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -24,10 +25,11 @@ class UserManager(BaseUserManager):
         # logic for dob
         user.firstname = firstname
         user.lastname = lastname
+        user.user_type_choice = '4'
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, firstname, lastname, password=None):
+    def create_superuser(self, email, firstname, lastname, password=None,**extra_fields):
         user = self.create_user(
             email,
             firstname,
@@ -35,11 +37,19 @@ class UserManager(BaseUserManager):
             password=password,
         )
         user.is_admin = True
+        user.user_type_choice = '1'  # Set user_type_choice as 'SuperUser'
+
         user.save(using=self._db)
         return user
+        # return self.create_user(email, firstname, lastname, password, **extra_fields)
+
 
 
 class User(AbstractBaseUser):
+    
+    choice = (("1", 'SuperUser'), ("2", 'Admin'),("3",'User'),("4",'ReadOnlyUSer'))
+    user_type_choice = models.CharField(max_length=100, choices=choice)
+
     email = models.EmailField(verbose_name='email', max_length=200, unique=True, )
     firstname = models.CharField(max_length=200)
     lastname = models.CharField(max_length=200)
@@ -79,7 +89,7 @@ def upload_to(instance, filename):
 
 
 class Profile(models.Model):
-    first_name = models.CharField(max_length=100, null=True, blank=True)
+    first_name = models.CharField(max_length=150, null=True, blank=True)
     last_name = models.CharField(max_length=100, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     address = models.CharField(max_length=100, null=True, blank=True)
