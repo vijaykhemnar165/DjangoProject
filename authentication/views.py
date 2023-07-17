@@ -1,20 +1,18 @@
 from django.http import Http404
 import json
 from authentication.models import User, Profile
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, ProfileSerializer
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, ProfileSerializer, UserSerializer
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny,IsAdminUser
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from django.contrib.auth import authenticate, logout
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
-from rest_framework.parsers import MultiPartParser, FileUploadParser
-from rest_framework import permissions
+from rest_framework import viewsets, permissions
+from django.contrib.auth import models
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
-
-
-
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -68,3 +66,22 @@ class UserLoginView(APIView):
     # Handle the error here
             return Response({'errors': 'User does not exist'},
                                 status=status.HTTP_404_NOT_FOUND)
+
+
+
+class PermissionGrantViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()  # You can modify the queryset as per your needs
+    serializer_class = UserSerializer  # Replace with your User serializer
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    def grant_permission(self, request, pk=None):
+        user = self.get_object()
+        group_id = request.data.get('group_id')
+
+        try:
+            group = models.Group.objects.get(id=group_id)
+        except models.Group.DoesNotExist:
+            return Response({'error': 'Invalid group ID'}, status=400)
+
+        user.groups.add(group)
+        return Response({'message': 'Permission granted successfully'})

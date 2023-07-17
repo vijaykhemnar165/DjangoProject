@@ -5,8 +5,17 @@ from .models import User, Profile
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 import json
+from django.contrib.auth import models
 
-# from django.contrib.auth.models import User
+# class AuthUserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = models.User
+#         fields = ['id', 'firstname', 'lastname', "email"]
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Group
+        fields = ['id', 'name']
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     # We are writing this becoz we need confirm password field in our Registratin Request
@@ -38,11 +47,11 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['firstname', 'lastname',"email"]
+        fields = ['id', 'firstname', 'lastname', "email"]
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
     image_url = serializers.ImageField(required=False)
     class Meta:
         model = Profile
-        fields = [ 'address', 'organization', 'zipcode', 'timezone','state', 'country','Phone','created_at','updated_at', 'user', 'image_url']
+        fields = ['address', 'organization', 'zipcode', 'timezone', 'state', 'country', 'Phone', 'created_at', 'updated_at', 'user', 'image_url']

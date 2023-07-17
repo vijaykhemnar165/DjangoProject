@@ -18,6 +18,7 @@
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import Permission
 from .models import User
 
 class UserModelAdmin(BaseUserAdmin):
@@ -34,3 +35,4 @@ class UserModelAdmin(BaseUserAdmin):
     ordering = ('email',)  # Use 'email' field for ordering
 
 admin.site.register(User, UserModelAdmin)
+admin.site.register(Permission)
