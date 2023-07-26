@@ -1,53 +1,49 @@
-from dataclasses import fields
-import email
-from unittest import mock
-from .models import User, Profile
+from .models import UserProfile, Profile
 from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
-import json
 from django.contrib.auth import models
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.password_validation import validate_password
 
-# class AuthUserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = models.User
-#         fields = ['id', 'firstname', 'lastname', "email"]
-
-class GroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Group
-        fields = ['id', 'name']
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     # We are writing this becoz we need confirm password field in our Registratin Request
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
-
     class Meta:
-        model = User
-        fields = ['email', 'password', 'password2', 'firstname', 'lastname']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+        model = UserProfile
+        fields = ['id', 'username', 'email', 'password']
 
-    def create(self, data):
-        return User.objects.create_user(
-            email=data.get("email"),
-            firstname=data.get("firstname"),
-            lastname=data.get("lastname"),
-            password=data.get("password")
-        )
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = UserProfile(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
+    # class Meta:
+    #     model = UserProfile
+    #     fields = ['email', 'password', 'password2', 'username']
+    #     extra_kwargs = {
+    #         'password': {'write_only': True}
+    #     }
+    #
+    # def create(self, data):
+    #     return UserProfile.objects.create_user(
+    #         email=data.get("email"),
+    #         firstname=data.get("firstname"),
+    #         lastname=data.get("lastname"),
+    #         password=data.get("password")
+    #     )
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
     class Meta:
-        model = User
+        model = UserProfile
         fields = ['email', 'password']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['id', 'firstname', 'lastname', "email"]
+        model = UserProfile
+        fields = ["id","username", "email"]
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
