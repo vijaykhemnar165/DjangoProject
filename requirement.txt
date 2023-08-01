@@ -9,3 +9,4 @@ typing_extensions==4.7.1
 drf-spectacular-sidecar==2023.7.1
 drf-spectacular==0.26.4
 pillow==10.0.0
+python-dotenv==1.0.0
