@@ -1,14 +1,15 @@
-from authentication.models import UserProfile, Profile
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, ProfileSerializer, UserSerializer
+from authentication.models import UserProfile, UserInvitation
+from .serializers import UserRegistrationSerializer, UserLoginSerializer
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from django.contrib.auth import authenticate, logout
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+from django.http.response import JsonResponse
+from django.contrib.auth import authenticate
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
-
+from authentication.Util import Util
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -87,6 +88,62 @@ class UserLoginView(APIView):
                                 status=status.HTTP_404_NOT_FOUND)
 
 
+class SendInvitationView(APIView):
+    permission_classes = [AllowAny, ]
+
+    def post(self, request):
+        """Method for inviting user"""
+        if request.method == 'POST':
+            email = request.data.get('email')
+            invited_by_user = request.user  # Assuming you are using your custom User model
+
+            if invited_by_user.user_type_choice == "1":
+                role = UserInvitation.ROLE_TENANT_ADMIN
+            else:
+                role = UserInvitation.ROLE_USER
+
+            if not email:
+                return JsonResponse({"message": "Email field is required."}, status=400)
+
+            try:
+                existing_user_invitation = UserInvitation.objects.get(
+                    email=email)
+                if existing_user_invitation.status == UserInvitation.PENDING:
+                    return JsonResponse({"message": "User already exists and invitation is pending."}, status=400)
+                elif existing_user_invitation.status == UserInvitation.EXPIRED:
+                    # Update the invitation status to pending and resend the invitation
+                    existing_user_invitation.status = UserInvitation.PENDING
+                    existing_user_invitation.save()
+
+                    data = {
+                        "website_url": "http://127.0.0.1/",
+                        "email_to": existing_user_invitation.email,
+                        "email_subject": "User invitation",
+                        "role": role
+                    }
+                    Util.send_mail(data)
+
+                    request.session['email_to'] = existing_user_invitation.email
+
+                    return JsonResponse({"message": "User already exists but the previous invitation expired. A new invitation has been sent."}, status=200)
+            except UserInvitation.DoesNotExist:
+                pass
+
+            user_invitation = UserInvitation.objects.create(
+                email=email, status=UserInvitation.PENDING, invited_by=invited_by_user, role=role)
+            user_invitation.save()
+
+            data = {
+                "website_url": "http://127.0.0.1/",
+                "email_to": user_invitation.email,
+                "email_subject": "User invitation",
+                "role": role
+            }
+            Util.send_mail(data)
+
+            request.session['email_to'] = user_invitation.email
+
+            return JsonResponse({"message": f"Invite Sent to {user_invitation.email}"}, status=200)
 
 
 

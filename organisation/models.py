@@ -17,7 +17,7 @@ class Organisation(models.Model):
 class Site(models.Model):
     name = models.CharField(max_length=150, null=True, blank=True)
     address = models.CharField(max_length=100, null=True, blank=True)
-    organization = models.ForeignKey(Organisation, on_delete=models.CASCADE, related_name='organizations')
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, related_name='organizations')
     zipcode = models.CharField(max_length=100, null=True, blank=True)
     state = models.CharField(max_length=100, null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)

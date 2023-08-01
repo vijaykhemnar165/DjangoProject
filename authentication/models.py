@@ -134,7 +134,31 @@ class UserProfile(AbstractBaseUser):
             self.groups.set([customer_user_group])
             self.user_permissions.set(customer_user_permissions)
 
+class UserInvitation(models.Model):
+    ACCEPTED = 'accepted'
+    EXPIRED = 'expired'
+    PENDING = 'pending'
 
+    STATUS_CHOICES = (
+        (ACCEPTED, 'Accepted'),
+        (EXPIRED, 'Expired'),
+        (PENDING, 'Pending'),
+    )
+
+    ROLE_TENANT_ADMIN = 'tenant_admin'
+    ROLE_USER = 'user'
+
+    ROLE_CHOICES = (
+        (ROLE_TENANT_ADMIN, 'Tenant Admin'),
+        (ROLE_USER, 'User'),
+    )
+
+    email = models.CharField(max_length=150, null=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
+    invited_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_USER)
+
+    
 
 # Create your models here.
 # class UserManager(BaseUserManager):

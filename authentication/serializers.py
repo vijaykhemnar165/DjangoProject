@@ -1,4 +1,4 @@
-from .models import UserProfile, Profile
+from .models import UserProfile, Profile, UserInvitation
 from rest_framework import serializers
 from django.contrib.auth import models
 from django.contrib.auth.hashers import make_password
@@ -51,3 +51,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['address', 'organization', 'zipcode', 'timezone', 'state', 'country', 'Phone', 'created_at', 'updated_at', 'user', 'image_url']
+
+class UserInvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserInvitation
