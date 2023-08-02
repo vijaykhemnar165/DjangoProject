@@ -7,7 +7,7 @@ from django import forms
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import UserProfile
+from .models import UserProfile, UserInvitation
 
 
 class CustomUserCreationForm(forms.ModelForm):
@@ -48,3 +48,6 @@ class UserProfileModelAdmin(UserAdmin):
 
 admin.site.register(UserProfile, UserProfileModelAdmin)
 
+@admin.register(UserInvitation)
+class UserInvitationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'email','status','role']

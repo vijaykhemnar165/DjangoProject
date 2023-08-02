@@ -9,7 +9,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     # We are writing this becoz we need confirm password field in our Registratin Request
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'email', 'password']
+        fields = ['id', 'username', 'email', 'password','server']
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -36,22 +36,35 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
+
     class Meta:
         model = UserProfile
         fields = ['email', 'password']
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ["id","username", "email"]
+        fields = ["id", "username", "email"]
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
     image_url = serializers.ImageField(required=False)
+
     class Meta:
         model = Profile
-        fields = ['address', 'organization', 'zipcode', 'timezone', 'state', 'country', 'Phone', 'created_at', 'updated_at', 'user', 'image_url']
+        fields = ['address', 'organization', 'zipcode', 'timezone', 'state',
+                  'country', 'Phone', 'created_at', 'updated_at', 'user', 'image_url']
+
 
 class UserInvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserInvitation
+        fields = ["email"]  # Include only the 'email' field
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    
+    
